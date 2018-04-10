@@ -3,6 +3,7 @@ package net.exent.alarmcalls;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -11,6 +12,8 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
+import static net.exent.alarmcalls.AlarmActivity.ALARM_PREFERENCES;
 
 /**
  * Created by canidae on 4/4/18.
@@ -41,16 +44,24 @@ public class CallReceiver extends BroadcastReceiver {
             String phoneNo = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
             Cursor cursor = context.getContentResolver()
                     .query(Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNo)),
-                            new String[] {ContactsContract.CommonDataKinds.Phone.CUSTOM_RINGTONE},
+                            null,
                             null, null, null);
             String ringtone = null;
             if (cursor != null) {
-                if (cursor.moveToNext())
-                    ringtone = cursor.getString(0);
+                if (cursor.moveToNext()) {
+                    phoneNo = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.NORMALIZED_NUMBER));
+                    ringtone = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.CUSTOM_RINGTONE));
+                }
                 cursor.close();
             }
+            SharedPreferences preferences = context.getSharedPreferences(ALARM_PREFERENCES, 0);
+            String data = preferences.getString(phoneNo, null);
+            if (data == null)
+                return;
             previousSoundLevel = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            double volumePercent = Double.parseDouble(data.substring(0, data.indexOf(';'))) / 100.0;
+            int volume = (int) (volumePercent * audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
             mediaPlayer = MediaPlayer.create(context, Uri.parse(ringtone));
             mediaPlayer.setLooping(true);
             mediaPlayer.start();
