@@ -18,7 +18,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
-        android:text="Vibrate" />
+        android:text="Vibrate"
+        android:visibility="invisible" />
 
     <Switch
         android:id="@+id/flashSwitch"
@@ -26,7 +27,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_toStartOf="@+id/vibrateSwitch"
-        android:text="Flash" />
+        android:text="Flash"
+        android:visibility="invisible" />
 
     <TextView
         android:id="@+id/volumeText"

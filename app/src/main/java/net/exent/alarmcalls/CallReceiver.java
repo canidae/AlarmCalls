@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -20,6 +21,7 @@ import static net.exent.alarmcalls.AlarmActivity.ALARM_PREFERENCES;
  */
 
 public class CallReceiver extends BroadcastReceiver {
+    private static final AudioFocusRequest audioFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT).build();
     private static int previousSoundLevel;
     private static MediaPlayer mediaPlayer;
 
@@ -62,11 +64,13 @@ public class CallReceiver extends BroadcastReceiver {
             double volumePercent = Double.parseDouble(data.substring(0, data.indexOf(';'))) / 100.0;
             int volume = (int) (volumePercent * audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            audioManager.requestAudioFocus(audioFocusRequest);
             mediaPlayer = MediaPlayer.create(context, Uri.parse(ringtone));
             mediaPlayer.setLooping(true);
             mediaPlayer.start();
         } else if (mediaPlayer != null) {
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, previousSoundLevel, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            audioManager.abandonAudioFocusRequest(audioFocusRequest);
             mediaPlayer.setLooping(false);
             mediaPlayer.stop();
             mediaPlayer.release();

@@ -71,7 +71,7 @@ public class AlarmActivity extends Activity {
                         SharedPreferences preferences = getSharedPreferences(ALARM_PREFERENCES, 0);
                         preferences.edit().putString(phoneNumber, "100;1;1").apply();
                         RecyclerView recyclerView = findViewById(R.id.contactsView);
-                        recyclerView.invalidate();
+                        recyclerView.getAdapter().notifyDataSetChanged();
                     }
                     c.close();
                 }
@@ -91,12 +91,14 @@ public class AlarmActivity extends Activity {
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            Log.d(getClass().getName(), "onCreateViewHolder");
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.contact_entry, parent, false);
             return new ContactRecyclerViewAdapter.ViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Log.d(getClass().getName(), "onBindViewHolder: " + position);
             TreeMap<String, ?> sortedMap = new TreeMap<>(getSharedPreferences(ALARM_PREFERENCES, 0).getAll());
             int index = -1;
             for (Map.Entry<String, ?> entry : sortedMap.entrySet()) {
@@ -114,6 +116,7 @@ public class AlarmActivity extends Activity {
 
         @Override
         public int getItemCount() {
+            Log.d(getClass().getName(), "getItemCount()");
             return getSharedPreferences(ALARM_PREFERENCES, 0).getAll().size();
         }
 
@@ -136,7 +139,8 @@ public class AlarmActivity extends Activity {
                     @Override
                     public boolean onLongClick(View v) {
                         preferences.edit().remove(phoneNumberText.getText().toString()).apply();
-                        // TODO: update recycler view
+                        RecyclerView recyclerView = findViewById(R.id.contactsView);
+                        recyclerView.getAdapter().notifyDataSetChanged();
                         return true;
                     }
                 });
@@ -150,7 +154,6 @@ public class AlarmActivity extends Activity {
                             data = values[0] + ";" + (isChecked ? "1" : "0") + ";" + values[2];
                             preferences.edit().putString(phoneNumber, data).apply();
                         }
-                        // TODO: update recycler view
                     }
                 });
                 vibrateSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -163,7 +166,6 @@ public class AlarmActivity extends Activity {
                             data = values[0] + ";" + values[1] + ";" + (isChecked ? "1" : "0");
                             preferences.edit().putString(phoneNumber, data).apply();
                         }
-                        // TODO: update recycler view
                     }
                 });
                 volumeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -176,7 +178,6 @@ public class AlarmActivity extends Activity {
                             data = progress + ";" + values[0] + ";" + values[1];
                             preferences.edit().putString(phoneNumber, data).apply();
                         }
-                        // TODO: update recycler view
                     }
 
                     @Override
